@@ -149,7 +149,8 @@ private:
     void dodajPracownik(Osoba **tabOsoba, Pracownik *Osoba);
     void ustawObecnosc(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, bool Obecnosc);
     void drukujListe(Osoba **tabOsob, bool *tabObecnosc);
-    void Edytuj(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Osoba Osoba, bool Obecnosc);
+    void EdytujStudent(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Student Osoba, bool Obecnosc);
+    void EdytujPracownik(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Pracownik Osoba, bool Obecnosc);
     void Usun(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko);
 
 public:
@@ -218,7 +219,21 @@ void Interfejs::drukujListe(Osoba **tabOsob, bool *tabObecnosc)
     }
     return;
 }
-void Interfejs::Edytuj(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Osoba Osoba, bool Obecnosc)
+void Interfejs::EdytujStudent(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Student Osoba, bool Obecnosc)
+{
+    for(int i=0;i<n;i++)
+    {
+        if(tabOsob[i]->getNazwisko()==Nazwisko)
+        {
+            tabOsob[i]=&Osoba;
+            tabObecnosc[i]=Obecnosc;
+            
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::EdytujPracownik(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Pracownik Osoba, bool Obecnosc)
 {
     for(int i=0;i<n;i++)
     {
@@ -287,7 +302,7 @@ void Interfejs::petla()
     
     while(m!=0)
     {
-        cout<<"\nMenu:"<<"\n"<<"0-Wyjdz"<<"\n"<<"1-dodaj Studenta"<<"\n"<<"2-dodaj Pracownika"<<"\n"<<"3-ustaw Obecnosc"<<"\n"<<"4-wyswietl liste"<<"\n"<<"5-edytuj liste"<<"\n"<<"6-usun z listy"<<"\n"<<"7-zmien liste obecnosci(1-"<<k<<")";
+        cout<<"\nMenu:"<<"\n"<<"0-Wyjdz"<<"\n"<<"1-dodaj Studenta"<<"\n"<<"2-dodaj Pracownika"<<"\n"<<"3-ustaw Obecnosc"<<"\n"<<"4-wyswietl liste"<<"\n"<<"5-edytuj student"<<"\n"<<"6-edytuj pracownik"<<"\n"<<"7-usun z listy"<<"\n"<<"8-zmien liste obecnosci(1-"<<k<<")";
         cin>>m;
         switch(m)
         {
@@ -348,14 +363,33 @@ void Interfejs::petla()
             cin>>Obecnosc;
             cout<<"Podaj nazwisko osoby do edycji: ";
             cin>>tempstring;
-            Edytuj(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, temp_Student, Obecnosc);
+            EdytujStudent(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, temp_Student, Obecnosc);
             break;
         case 6:
+            cout<<"Podaj numer id: ";
+            cin>>tempint;
+            temp_Pracownik.setId(tempint);
+            cout<<"Podaj Imie: ";
+            cin>>tempstring;
+            temp_Pracownik.setImie(tempstring);
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            temp_Pracownik.setNazwisko(tempstring);
+            cout<<"Podaj Wzrost: ";
+            cin>>tempint;
+            temp_Pracownik.setWzrost(tempint);
+            cout<<"Obecosc(0-nieobecny, 1-obecny): ";
+            cin>>Obecnosc;
+            cout<<"Podaj nazwisko osoby do edycji: ";
+            cin>>tempstring;
+            EdytujPracownik(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, temp_Pracownik, Obecnosc);
+            break;
+        case 7:
             cout<<"Podaj Nazwisko: ";
             cin>>tempstring;
             Usun(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring);
             break;
-        case 7:
+        case 8:
             cout<<"Podaj numer listy: ";
             cin>>nr_listy;
             l=nr_listy-1;
