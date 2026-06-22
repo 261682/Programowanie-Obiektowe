@@ -1,0 +1,571 @@
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+#include <time.h> 
+#include <string>
+#include <map>
+using namespace std;
+int n=10;
+int k=2;
+// dodaj osobne listy obecności które dzielą wskaźniki na tę same osoby dwie tablice każda
+
+class ISerializable 
+{
+    public:
+    virtual string serialize()=0;
+};
+class IEksportowalnny
+{
+    public:
+    virtual map<string, string> eksportuj()=0;
+};
+class IEksporter
+{
+    public:
+    void wykonajExport(IEksportowalnny *obj, string nazwaPliku);
+};
+
+class Eksportertxt:public IEksporter
+{
+    public:
+    void wykonajExport(IEksportowalnny *obj, string nazwaPliku);
+    
+};
+void Eksportertxt::wykonajExport(IEksportowalnny *obj, string nazwaPliku)
+{
+fstream file;
+    file.open(nazwaPliku, fstream::out);
+    map <string,string> dane=obj->eksportuj(); 
+    for(const auto& it: dane)
+    {
+        file<<it.first<<" "<<it.second<<"\n";
+    }
+    file.close();
+    return;
+}
+
+class Eksportercsv:public IEksporter
+{
+    public:
+    void wykonajExport(IEksportowalnny *obj, string nazwaPliku);
+    
+};
+void Eksportercsv::wykonajExport(IEksportowalnny *obj, string nazwaPliku)
+{
+fstream file;
+    file.open(nazwaPliku, fstream::out);
+    map <string,string> dane=obj->eksportuj(); 
+    for(const auto& it: dane)
+    {
+        file<<it.first<<", "<<it.second<<"\n";
+    }
+    file.close();
+    return;
+}
+
+class Osoba:public ISerializable, public IEksportowalnny
+{
+protected:
+//data urodzenia                
+    int Wzrost;
+    string Imie;
+    string Nazwisko;
+public:
+    void setWzrost(int Wzrost);
+    void setImie(string Imie);
+    void setNazwisko(string Nazwisko);
+    int getWzrost();
+
+    string getImie();
+    string getNazwisko();
+    string serialize()override;
+    map <string,string> eksportuj()override;
+};
+void Osoba::setWzrost(int wartosc)
+{
+    Wzrost=wartosc;
+}
+void Osoba::setImie(string wartosc)
+{
+    if(wartosc.length()>0)
+    {
+        Imie=wartosc;
+    }
+}
+void Osoba::setNazwisko(string wartosc)
+{
+    if(wartosc.length()>0)
+    {
+        Nazwisko=wartosc;
+    }
+}
+int Osoba::getWzrost()
+{
+    return Wzrost;
+}
+string Osoba::getImie()
+{
+    return Imie;
+}
+string Osoba::getNazwisko()
+{
+    return Nazwisko;
+}
+string Osoba::serialize()
+{
+    return Imie+" "+Nazwisko;
+}
+map <string, string> Osoba::eksportuj()
+{
+    return
+    {
+        {"typ", "Student"},
+        {"Imie", Imie},
+        {"Nazwisko", Nazwisko} 
+    };
+}
+
+class Student:public Osoba
+{
+private:              
+    int Indeks;
+public:
+    void setIndeks(int Indeks);
+    int getIndeks();
+    string serialize()override;
+    map <string,string> eksportuj()override;
+};
+void Student::setIndeks(int wartosc)
+{
+    if(wartosc>99999&&wartosc<1000000)
+    {
+        Indeks=wartosc;
+    }
+}
+int Student::getIndeks()
+{
+    return Indeks;
+}
+string Student::serialize()
+{
+    return to_string(Indeks)+" "+Imie+" "+Nazwisko;
+}
+map <string, string> Student::eksportuj()
+{
+    return
+    {
+        {"typ", "Student"},
+        {"nr indeksu", to_string(Indeks)},
+        {"Imie", Imie},
+        {"Nazwisko", Nazwisko} 
+    };
+}
+
+class Pracownik:public Osoba
+{
+private:              
+    int Id;
+public:
+    void setId(int Indeks);
+    int getId();
+    string serialize()override;
+    map <string,string> eksportuj()override;
+};
+void Pracownik::setId(int wartosc)
+{
+    if(wartosc>99&&wartosc<1000)
+    {
+        Id=wartosc;
+    }
+}
+int Pracownik::getId()
+{
+    return Id;
+}
+string Pracownik::serialize()
+{
+    return to_string(Id)+" "+Imie+" "+Nazwisko;
+}
+map <string, string> Pracownik::eksportuj()
+{
+    return 
+    {
+        {"typ", "Pracownik"},
+        {"nr id", to_string(Id)},
+        {"Imie", Imie},
+        {"Nazwisko", Nazwisko}
+    };
+}
+
+class Lista_obecnosci:public ISerializable, public IEksportowalnny
+{
+private:
+    Osoba **tabOsob;
+    bool *tabObecnosc;
+    int ileOsob;
+public:
+    void settabOsob(Osoba **tabOsoba, int ile);
+    void settabObecnosc(bool *tabObecnosc);
+    Osoba** gettabOsoba();
+    bool* gettabObecnosc();
+    string serialize()override;
+    map <string,string> eksportuj()override;
+};
+void Lista_obecnosci::settabOsob(Osoba **temp, int ile)
+{
+    tabOsob=temp;
+    ileOsob=ile;
+}
+void Lista_obecnosci::settabObecnosc(bool *temp)
+{
+    tabObecnosc=temp;
+}
+Osoba** Lista_obecnosci::gettabOsoba()
+{
+    return tabOsob;
+}
+bool* Lista_obecnosci::gettabObecnosc()
+{
+    return tabObecnosc;
+}
+string Lista_obecnosci::serialize()
+{
+    string s;
+    for(int i=0;i<n;i++)
+    {
+        s=s+tabOsob[i]->serialize()+" "+to_string(tabObecnosc[i])+"\n";
+    }
+    return s;
+}
+map <string, string> Lista_obecnosci::eksportuj() //nie działa prawidłowo
+{
+    int i=0;
+    map <string, string> temp1;
+    map <string, string> temp2;
+    for(i=0;i<ileOsob;i++) // nie doadje pola jeżęli ma takie same wartości w 1 kolumnie
+    {   
+        temp2=tabOsob[i]->eksportuj();
+        temp1.insert(temp2.begin(), temp2.end());
+    }
+    return temp1;
+}
+
+class Interfejs
+{
+private:
+    Lista_obecnosci *tabList;
+    int ileOsob, ileList;
+
+    void dodajStudent(Osoba **tabOsoba, Student *Osoba);
+    void dodajPracownik(Osoba **tabOsoba, Pracownik *Osoba);
+    void ustawObecnosc(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, bool Obecnosc);
+    void EdytujStudent(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Student Osoba, bool Obecnosc);
+    void EdytujPracownik(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Pracownik Osoba, bool Obecnosc);
+    void Usun(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko);
+    void drukuj(ISerializable *obj);
+    string zapisz(ISerializable *obj, string nazwa_pliku);
+               
+public:
+    void petla();
+    void settabList(Lista_obecnosci *tabLista);
+    void settabileOsob(int ileosob);
+    void settabileList(int ilelist);
+
+};
+void Interfejs::settabList(Lista_obecnosci *temp)
+{
+    tabList=temp;
+}
+void Interfejs::settabileOsob(int temp)
+{
+    ileOsob=temp;
+}
+void Interfejs::settabileList(int temp)
+{
+    ileList=temp;
+}
+void Interfejs::dodajStudent(Osoba **tabOsob, Student *osoba)
+{
+    for(int i=0;i<ileOsob;i++)
+    {
+        if(tabOsob[i]->getNazwisko()=="")
+        {
+            tabOsob[i]=osoba;
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::dodajPracownik(Osoba **tabOsob, Pracownik *osoba)
+{
+    for(int i=0;i<ileOsob;i++)
+    {
+        if(tabOsob[i]->getNazwisko()=="")
+        {
+            tabOsob[i]=osoba;
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::ustawObecnosc(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, bool Obecnosc)
+{
+    for(int i=0;i<n;i++)
+    {
+        if(tabOsob[i]->getNazwisko()==Nazwisko)
+        {
+            tabObecnosc[i]=Obecnosc;
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::EdytujStudent(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Student Osoba, bool Obecnosc)
+{
+    for(int i=0;i<n;i++)
+    {
+        if(tabOsob[i]->getNazwisko()==Nazwisko)
+        {
+            tabOsob[i]=&Osoba;
+            tabObecnosc[i]=Obecnosc;
+            
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::EdytujPracownik(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko, Pracownik Osoba, bool Obecnosc)
+{
+    for(int i=0;i<n;i++)
+    {
+        if(tabOsob[i]->getNazwisko()==Nazwisko)
+        {
+            tabOsob[i]=&Osoba;
+            tabObecnosc[i]=Obecnosc;
+            
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::Usun(Osoba **tabOsob, bool *tabObecnosc, string Nazwisko)
+{
+    Osoba temp;
+    for(int i=0;i<n;i++)
+    {
+        if(tabOsob[i]->getNazwisko()==Nazwisko)
+        {
+            for(int j=i;j<n-1;j++)
+            {
+                tabOsob[j]=tabOsob[j+1];
+                tabObecnosc[j]=tabObecnosc[j+1];
+                
+            }
+            tabOsob[n-1]=&temp;
+            tabObecnosc[n-1]=NULL;
+
+            return;
+        }
+    }
+    return;
+}
+void Interfejs::drukuj(ISerializable *obj)
+{
+    cout<<obj->serialize();
+}
+string Interfejs::zapisz(ISerializable *obj, string scieszka_pliku)
+{
+    fstream file;
+    file.open(scieszka_pliku, fstream::out);
+
+        file<<obj->serialize();
+    file.close();
+    return "data saved!\n";
+}
+void Interfejs::petla()
+{
+    
+    int l=0;
+    int tempint, nr_listy;
+    string tempstring;
+    bool Obecnosc;
+    bool *tabObecnosc; 
+    Osoba **tabOsob;
+    Osoba os;
+    os.setImie("");
+    os.setNazwisko("");
+    os.setWzrost(1);
+    
+    for(int i=0;i<ileList;i++)
+    {
+        tabObecnosc=new bool[n];
+        tabOsob=new Osoba*[ileOsob];
+        for(int j=0;j<ileOsob;j++)
+        {
+            tabOsob[j]=&os;     
+        }
+        tabList[i].settabObecnosc(tabObecnosc);
+        tabList[i].settabOsob(tabOsob,ileOsob);
+    }
+    string plik="c:\\Lista.txt";
+    //Osoba **tabOsob=tabList[l].gettabOsoba();
+    Student temp_Student;
+    Pracownik temp_Pracownik;
+    int m=1;
+    
+    while(m!=0)
+    {
+
+        cout<<"\nMenu:"<<"\n"
+        <<"0-Wyjdz"<<"\n"
+        <<"1-dodaj Studenta"<<"\n"
+        <<"2-dodaj Pracownika"<<"\n"
+        <<"3-ustaw Obecnosc"<<"\n"
+        <<"4-wyswietl liste"<<"\n"
+        <<"5-edytuj student"<<"\n"
+        <<"6-edytuj pracownik"<<"\n"
+        <<"7-usun z listy"<<"\n"
+        <<"8-zmien liste obecnosci(1-"<<k<<")"<<"\n"
+        <<"9-exportuj";
+        cin>>m;
+        switch(m)
+        {
+        case 1:
+            cout<<"Podaj numer indeksu: ";
+            cin>>tempint;
+            temp_Student.setIndeks(tempint);
+            cout<<"Podaj Imie: ";
+            cin>>tempstring;
+            temp_Student.setImie(tempstring);
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            temp_Student.setNazwisko(tempstring);
+            cout<<"Podaj Wzrost: ";
+            cin>>tempint;
+            temp_Student.setWzrost(tempint);
+            dodajStudent(tabList[l].gettabOsoba(), &temp_Student);
+            break;
+        case 2:
+            cout<<"Podaj numer id: ";
+            cin>>tempint;
+            temp_Pracownik.setId(tempint);
+            cout<<"Podaj Imie: ";
+            cin>>tempstring;
+            temp_Pracownik.setImie(tempstring);
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            temp_Pracownik.setNazwisko(tempstring);
+            cout<<"Podaj Wzrost: ";
+            cin>>tempint;
+            temp_Pracownik.setWzrost(tempint);
+            dodajPracownik(tabList[l].gettabOsoba(), &temp_Pracownik);
+            break;
+        case 3:
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            cout<<"Obecosc(0-nieobecny, 1-obecny): ";
+            cin>>Obecnosc;
+            ustawObecnosc(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, Obecnosc);
+            break;
+        case 4:
+            drukuj(&tabList[l]);
+            break;
+        case 5:
+            cout<<"Podaj numer indeksu: ";
+            cin>>tempint;
+            temp_Student.setIndeks(tempint);
+            cout<<"Podaj Imie: ";
+            cin>>tempstring;
+            temp_Student.setImie(tempstring);
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            temp_Student.setNazwisko(tempstring);
+            cout<<"Podaj Wzrost: ";
+            cin>>tempint;
+            temp_Student.setWzrost(tempint);
+            cout<<"Obecosc(0-nieobecny, 1-obecny): ";
+            cin>>Obecnosc;
+            cout<<"Podaj nazwisko osoby do edycji: ";
+            cin>>tempstring;
+            EdytujStudent(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, temp_Student, Obecnosc);
+            break;
+        case 6:
+            cout<<"Podaj numer id: ";
+            cin>>tempint;
+            temp_Pracownik.setId(tempint);
+            cout<<"Podaj Imie: ";
+            cin>>tempstring;
+            temp_Pracownik.setImie(tempstring);
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            temp_Pracownik.setNazwisko(tempstring);
+            cout<<"Podaj Wzrost: ";
+            cin>>tempint;
+            temp_Pracownik.setWzrost(tempint);
+            cout<<"Obecosc(0-nieobecny, 1-obecny): ";
+            cin>>Obecnosc;
+            cout<<"Podaj nazwisko osoby do edycji: ";
+            cin>>tempstring;
+            EdytujPracownik(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring, temp_Pracownik, Obecnosc);
+            break;
+        case 7:
+            cout<<"Podaj Nazwisko: ";
+            cin>>tempstring;
+            Usun(tabList[l].gettabOsoba(), tabList[l].gettabObecnosc(), tempstring);
+            break;
+        case 8:
+            cout<<"Podaj numer listy: ";
+            cin>>nr_listy;
+            l=nr_listy-1;
+            break;
+        case 9:
+            cout<<"1-exportuj liste:\n2-exportuj osobe";
+            cin>>tempint; 
+            Eksportertxt ex;
+            if(tempint==1)
+            {
+                //cout<<zapisz(&tabList[l], plik);
+                ex.wykonajExport(&tabList[l], plik); //nie działa prawidłowo
+            }
+            else if(tempint==2)
+            {
+                cout<<"podaj nazwisko:";                                                                                                                            
+                cin>>tempstring;
+                for(int i=0;i<n;i++)
+                {
+                    if(tabList[l].gettabOsoba()[i]->getNazwisko()==tempstring)
+                    {
+                        
+                        ex.wykonajExport(tabList[l].gettabOsoba()[i], plik);
+                    }
+                }
+            }
+            else
+            {
+                cout<<"BŁĄD";
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    delete []tabObecnosc;
+    tabObecnosc=nullptr; 
+}
+
+int main()
+{
+    
+    Lista_obecnosci *tabList=new Lista_obecnosci[k];  
+    Interfejs ui;
+    
+    ui.settabileOsob(n);
+    ui.settabList(tabList);
+    ui.settabileList(k);
+
+    ui.petla();
+
+    delete []tabList;
+    tabList=nullptr;    
+    return 0;
+}
